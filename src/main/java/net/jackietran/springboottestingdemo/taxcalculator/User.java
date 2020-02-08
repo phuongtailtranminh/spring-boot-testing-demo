@@ -1,6 +1,7 @@
 package net.jackietran.springboottestingdemo.taxcalculator;
 
 import lombok.Data;
+import lombok.ToString;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -24,6 +25,7 @@ public class User {
     @Column(name = "password")
     private String password;
 
+    @ToString.Exclude
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private TaxInfo taxInfo;
 

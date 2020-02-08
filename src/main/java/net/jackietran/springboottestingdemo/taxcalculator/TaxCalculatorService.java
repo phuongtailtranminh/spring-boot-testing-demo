@@ -1,8 +1,13 @@
 package net.jackietran.springboottestingdemo.taxcalculator;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+import java.util.Optional;
+
+@Slf4j
 @AllArgsConstructor
 @Service
 public class TaxCalculatorService {
@@ -13,20 +18,24 @@ public class TaxCalculatorService {
     private final double LOW_INCOME_TAX = 0.05;
     private final double HIGH_INCOME_TAX = 0.1;
 
-    public void calculateAndSaveTaxForUser(String userId) {
-        userRepository.findById(userId).ifPresentOrElse(user -> {
-            TaxInfo taxInfo = user.getTaxInfo();
-            if (taxInfo == null) {
-                throw new IllegalArgumentException(String.format("Tax Info of user id %s doesn't exist", userId));
-            }
+    public TaxInfo calculateAndSaveTaxForUser(String userId) {
+        Objects.requireNonNull(userId, "User ID cannot be null");
 
-            double tax = calculateTax(taxInfo.getIncome());
-            taxInfo.setTax(tax);
+        Optional<User> user = userRepository.findById(userId);
 
-            taxInfoRepository.save(taxInfo);
-        }, () -> {
+        if (!user.isPresent()) {
             throw new IllegalArgumentException(String.format("User ID %s doesn't exist", userId));
-        });
+        }
+
+        TaxInfo taxInfo = user.get().getTaxInfo();
+
+        if (taxInfo == null) {
+            throw new IllegalArgumentException(String.format("Tax Info of user id %s doesn't exist", userId));
+        }
+
+        taxInfo.setTax(calculateTax(taxInfo.getIncome()));
+
+        return taxInfoRepository.save(taxInfo);
     }
 
     private double calculateTax(double income) {
